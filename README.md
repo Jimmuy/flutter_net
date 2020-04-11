@@ -57,6 +57,17 @@ Future<T> put<T>(String url, {params, options, cancelToken}) =>
 
 
 ## 使用：
+
+### 添加依赖
+
+在pubspec.yaml文件下dependencies标签下添加如下依赖
+
+```
+  flutternet:
+    git:
+      url: https://github.com/Jimmuy/flutter_net.git
+```
+
 通常情况下服务器返回的格式为code,message,data这种json形式，DioManager在初始化的时候也添加了对应的通用头，和业务错误码映射以及json解析方式等根据项目定制的功能，如果需要自定义请自行继承AbstractDioManager实现抽象方法来适配服务器的返回。在项目中默认默认实现好的为DioManger.
 
 若需要自定义，通常需要实现如下方法
