@@ -7,13 +7,24 @@ Flutter项目中的网络请求采用的是dio网络请求库，dio是一个强�
 
 本文档主要说明对dio使用的上层封装，简化了dio的使用，方便上层开发进行网络通信。
 
+## 添加依赖
+
+在pubspec.yaml文件下dependencies标签下添加如下依赖
+
+```
+  flutternet:
+    git:
+      url: https://github.com/Jimmuy/flutter_net.git
+```
+
 ## 类文件说明：
 ```
 /**
  * 网络请求管理实现类，可根据项目需求进行自定义参数配置
  */
-```
 class DioManager extends AbstractDioManager{}
+ 
+```
 
 
 ```
@@ -22,8 +33,9 @@ class DioManager extends AbstractDioManager{}
  * 负责执行网络请求的通用逻辑
  * 不同项目的不同配置交给上层实现
  */
-```
 abstract class AbstractDioManager {}
+ 
+```
 
 
 ```
@@ -51,22 +63,13 @@ Future<T> post<T>(String url, {params, options, cancelToken}) =>
 Future<T> delete<T>(String url, {params, options, cancelToken}) =>
     DioManager.getInstance().delete<T>(url, params: params, options: options, token: cancelToken);
 Future<T> put<T>(String url, {params, options, cancelToken}) =>
-```
     DioManager.getInstance().put<T>(url, params: params, options: options, token: cancelToken);
+
+```
 
 
 
 ## 使用：
-
-### 添加依赖
-
-在pubspec.yaml文件下dependencies标签下添加如下依赖
-
-```
-  flutternet:
-    git:
-      url: https://github.com/Jimmuy/flutter_net.git
-```
 
 通常情况下服务器返回的格式为code,message,data这种json形式，DioManager在初始化的时候也添加了对应的通用头，和业务错误码映射以及json解析方式等根据项目定制的功能，如果需要自定义请自行继承AbstractDioManager实现抽象方法来适配服务器的返回。在项目中默认默认实现好的为DioManger.
 
