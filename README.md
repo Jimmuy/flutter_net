@@ -1,8 +1,10 @@
 # 使用方式：
 ```
+  add below in your pubspec.yaml
+  
   flutter_net:
     git:
-      url:
+      url:https://github.com/Jimmuy/flutter_net.git
 ```
 
 # 摘要： 
