@@ -1,3 +1,7 @@
+class Token {
+  static String token;
+}
+
 ///错误编码
 class HttpCode {
   ///未知网络错误
@@ -19,9 +23,9 @@ class HttpCode {
 
   ///成功的code
   static const SUCCESS = 0;
+
   ///超时时长
   static const TIME_OUT = 15000;
 }
 
 enum Method { GET, POST, PUT, DELETE }
-

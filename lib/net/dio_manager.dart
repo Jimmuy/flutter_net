@@ -1,35 +1,22 @@
 import 'package:dio/dio.dart';
 
-import 'abstract_dio_manager.dart';
-import 'net_const.dart';
-import 'net_exception.dart';
+import 'base/abstract_dio_manager.dart';
+import 'constant/net_const.dart';
+import 'error/net_exception.dart';
 
-/// 网络请求管理类
-class DioManager extends AbstractDioManager {
-  static DioManager _instance; //单例管理
+/// dio网络请求管理类，实现了大部分通用逻辑，需要按照项目需求自定义的部分请在子类中实现，子类应是单例
 
-  static DioManager getInstance() {
-    if (_instance == null) {
-      _instance = DioManager();
-    }
-    return _instance;
-  }
-
+abstract class DioManager extends AbstractDioManager {
   ///统一配置，用于添加统一头，单度添加请求配置请在请求中填写，单次的配置只影响单次的请求，并不影响统一配置
   @override
   BaseOptions configBaseOptions() {
     return BaseOptions(
-        connectTimeout: HttpCode.TIME_OUT,
-        receiveTimeout: HttpCode.TIME_OUT,
-        headers: {
-//          "Authorization": "bearer xxxxxx"
-        },
-        responseType: ResponseType.json);
+        connectTimeout: HttpCode.TIME_OUT, receiveTimeout: HttpCode.TIME_OUT, baseUrl: getBaseUrl(), responseType: ResponseType.json);
   }
 
   @override
   void configDio() {
-    dio.interceptors.add(LogInterceptor(responseBody: true)); //是否开启请求日志
+    dio.interceptors.add(LogInterceptor(requestBody: isShowLog(), responseBody: isShowLog())); //是否开启请求日志
   }
 
   ///业务逻辑报错映射，目前暂时不做翻译工作，默认返回服务端返回的报错信息
@@ -63,6 +50,8 @@ class DioManager extends AbstractDioManager {
           errorResponse.statusMessage = "请求语法错误";
           break;
         case 401:
+          //退出登录
+          logout();
           errorResponse.statusMessage = "鉴权失败";
           break;
         case 403:
@@ -97,10 +86,16 @@ class DioManager extends AbstractDioManager {
     return new NetWorkException(errorResponse.statusCode, errorResponse.statusMessage);
   }
 
+  ///判断网络请求是否成功
   @override
-  bool isSuccess(Response response) => response.data["code"] != HttpCode.SUCCESS || !response.data["success"];
+  bool isSuccess(Response response) => response.data["code"] == HttpCode.SUCCESS && response.data["success"];
 
-  @override
-  ///默认实现返回json String 返回其他实体请使用json序列化库进行序列化实体
-  T decode<T>(Response response) => response.data["data"].toString() as T;
+  ///是否显示log日志
+  bool isShowLog() => false;
+
+  ///设置baseURl
+  String getBaseUrl();
+
+  ///token失效登出逻辑
+  void logout();
 }
