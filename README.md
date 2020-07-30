@@ -1,3 +1,10 @@
+# 使用方式：
+```
+  flutter_net:
+    git:
+      url:
+```
+
 # 摘要： 
 
 Flutter项目中的网络请求采用的是dio网络请求库，dio是一个强大的Dart Http请求库，支持Restful API、FormData、拦截器、请求取消、Cookie管理、文件上传/下载、超时、自定义适配器等... 
