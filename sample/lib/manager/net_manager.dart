@@ -1,7 +1,4 @@
-import 'package:dio/dio.dart';
-import 'package:flutter_net/net/constant/net_const.dart';
-import 'package:flutter_net/net/dio_manager.dart';
-import 'package:flutter_net/net/json/json_decoder.dart';
+import 'package:flutter_net/net/flutter_net.dart';
 import 'package:net_sample/bean/page.dart';
 import 'package:net_sample/json/mapper.dart';
 

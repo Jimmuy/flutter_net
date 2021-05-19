@@ -28,4 +28,4 @@ class HttpCode {
   static const TIME_OUT = 15000;
 }
 
-enum Method { GET, POST, PUT, DELETE }
+enum Method { GET, POST, PUT, DELETE, PATCH }

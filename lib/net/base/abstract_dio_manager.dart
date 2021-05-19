@@ -62,6 +62,17 @@ abstract class AbstractDioManager {
     );
   }
 
+  Future<T> patch<T>(String url, {params, options, token}) async {
+    return requestHttp<T>(
+      url,
+      Method.PATCH,
+      params: params,
+      options: options,
+      cancelToken: token,
+      decode: this.decode,
+    );
+  }
+
   ///R是返回类型，T是数据类型
   Future<R> requestHttp<R>(
     String url,
@@ -102,6 +113,8 @@ abstract class AbstractDioManager {
         response = await dio.delete(url, data: params, options: options, cancelToken: cancelToken);
       } else if (method == Method.PUT) {
         response = await dio.put(url, data: params, options: options, cancelToken: cancelToken);
+      } else if (method == Method.PATCH) {
+        response = await dio.patch(url, data: params, options: options, cancelToken: cancelToken);
       }
     } on DioError catch (error) {
       debugPrint("---------- net error $error");
