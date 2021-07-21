@@ -7,7 +7,12 @@ import 'package:flutter/cupertino.dart';
 ///如果返回格式为json格式，对应使用本类去解析即可
 
 ///将json解析成对应的实体类
-T createObjByType<T>(json, Map<dynamic, Function> typeMapper) => _findObjCreatorFunc<T>(typeMapper)(json);
+T createObjByType<T>(json, Map<dynamic, Function> typeMapper) {
+  if (json == null && json.toString().isEmpty) {
+    return null;
+  }
+  return _findObjCreatorFunc<T>(typeMapper)(json);
+}
 
 ///[List]对象解析
 List<T> fromJSONArray<T>(json, Map<dynamic, Function> typeMapper) {
