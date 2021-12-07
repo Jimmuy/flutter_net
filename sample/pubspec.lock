@@ -72,7 +72,7 @@ packages:
   flutter_net:
     dependency: "direct main"
     description:
-      path: "../../FlutterNet"
+      path: ".."
       relative: true
     source: path
     version: "0.0.1"

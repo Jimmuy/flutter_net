@@ -1,13 +1,14 @@
 /// 网络异常类
 
-class NetWorkException implements Exception {
+class NetWorkException<T> implements Exception {
   int code;
   String message;
+  T data;
 
-  NetWorkException(this.code, this.message);
+  NetWorkException(this.code, this.message, {this.data});
 
   @override
   String toString() {
-    return '网络异常{code: $code, message: $message}';
+    return '网络异常{code: $code, message: $message, data: $data}';
   }
 }

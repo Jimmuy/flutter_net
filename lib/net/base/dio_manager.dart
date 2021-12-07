@@ -21,7 +21,7 @@ abstract class DioManager extends AbstractDioManager {
 
   ///业务逻辑报错映射，目前暂时不做翻译工作，默认返回服务端返回的报错信息
   @override
-  NetWorkException getBusinessErrorResult(int code, String error) => NetWorkException(code, error);
+  NetWorkException getBusinessErrorResult<T>(int code, String error, T data) => NetWorkException<T>(code, error, data: data);
 
   /// HTTP层网络请求错误翻译
   @override
@@ -89,9 +89,6 @@ abstract class DioManager extends AbstractDioManager {
   ///判断网络请求是否成功
   @override
   bool isSuccess(Response response) => response.data["code"] == HttpCode.SUCCESS && response.data["success"];
-
-  ///是否显示log日志
-  bool isShowLog() => false;
 
   ///设置baseURl
   String getBaseUrl();

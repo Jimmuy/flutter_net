@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_net:
-    path: ../../FlutterNet
+    path: ../../ym_flutter_net
 
   cupertino_icons: ^0.1.3
 
