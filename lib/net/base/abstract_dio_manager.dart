@@ -8,7 +8,7 @@ import '../error/net_exception.dart';
 /// 不同项目的不同配置交给上层实现
 
 abstract class AbstractDioManager {
-  Dio dio;
+  late Dio dio;
 
   AbstractDioManager() {
     dio = new Dio(configBaseOptions());
@@ -16,7 +16,7 @@ abstract class AbstractDioManager {
   }
 
   ///get请求
-  Future<T> get<T>(String url, {Map<String, dynamic> params, Options options, token}) async {
+  Future<T> get<T>(String url, {Map<String, dynamic>? params, Options? options, token}) async {
     return requestHttp<T>(
       url,
       Method.GET,
@@ -28,7 +28,7 @@ abstract class AbstractDioManager {
   }
 
   ///post请求
-  Future<T> post<T>(String url, {Map<String, dynamic> params, Options options, token}) async {
+  Future<T> post<T>(String url, {Map<String, dynamic>? params, Options? options, token}) async {
     return requestHttp<T>(
       url,
       Method.POST,
@@ -39,7 +39,7 @@ abstract class AbstractDioManager {
     );
   }
 
-  Future<T> delete<T>(String url, {Map<String, dynamic> params, Options options, token}) async {
+  Future<T> delete<T>(String url, {Map<String, dynamic>? params, Options? options, token}) async {
     return requestHttp<T>(
       url,
       Method.DELETE,
@@ -50,7 +50,7 @@ abstract class AbstractDioManager {
     );
   }
 
-  Future<T> put<T>(String url, {Map<String, dynamic> params, Options options, token}) async {
+  Future<T> put<T>(String url, {Map<String, dynamic>? params, Options? options, token}) async {
     return requestHttp<T>(
       url,
       Method.PUT,
@@ -61,7 +61,7 @@ abstract class AbstractDioManager {
     );
   }
 
-  Future<T> patch<T>(String url, {Map<String, dynamic> params, Options options, token}) async {
+  Future<T> patch<T>(String url, {Map<String, dynamic>? params, Options? options, token}) async {
     return requestHttp<T>(
       url,
       Method.PATCH,
@@ -74,12 +74,12 @@ abstract class AbstractDioManager {
 
   Future<R> requestHttp<R>(String url,
       Method method, {
-        Map<String, dynamic> params,
-        Map<String, dynamic> headers,
+        Map<String, dynamic>? params,
+        Map<String, dynamic>? headers,
         String mediaType = 'application/json; charset=utf-8',
         options,
         cancelToken,
-        R decode(dynamic json),
+        required R? decode(dynamic json),
       }) {
     final methodName = method.toString().split('.')[1];
     if (method == Method.GET) {
@@ -109,24 +109,23 @@ abstract class AbstractDioManager {
   ///R是返回类型，T是数据类型
   Future<R> request<R>(String url,
       String method, {
-        Map<String, dynamic> params,
-        Map<String, dynamic> body,
-        Map<String, dynamic> headers,
+        Map<String, dynamic>? params,
+        Map<String, dynamic>? body,
+        Map<String, dynamic>? headers,
         String mediaType = 'application/json; charset=utf-8',
-        Options options,
+        Options? options,
         cancelToken,
-        R decode(dynamic json),
+        required R? decode(dynamic json),
       }) async {
     Response response;
 
-    ///打印日志
-    if (isShowLog()) printParams(params ?? body, url, headers);
+
     final opt = options ?? Options();
     try {
       response = await dio.request(
         url,
         data: body,
-        options: opt.merge(
+        options: opt.copyWith(
           headers: headers,
           method: method.toUpperCase(),
           responseType: ResponseType.json,
@@ -135,64 +134,106 @@ abstract class AbstractDioManager {
         queryParameters: params,
       );
     } on DioError catch (error) {
+      if (isShowLog()) printParams(params ?? body ?? {}, url, headers, null);
       print("---------- net error $error");
       throw getHttpErrorResult(error);
     }
 
+    ///打印日志
+    if (isShowLog()) printParams(params ?? body ?? {}, url, headers, response);
+    dynamic data;
     //优先解析请求是否出错
     if (!isSuccess(response)) {
-      if (response.data is Map && response.data["data"] != null) {
-        R data;
-        try {
-          data = decode(response.data['data']);
-        } catch (e) {
-          ///解析数据出错
-          throw getBusinessErrorResult(HttpCode.PARSE_JSON_ERROR, "json parse error~$e", null);
-        }
-
-        ///抛出含有数据的error
-        throw getBusinessErrorResult(getCode(response), getMessage(response), data);
-      } else {
-        ///抛出没有数据的error
-        throw getBusinessErrorResult(getCode(response), getMessage(response), null);
-      }
-    }
-    //确保请求成功的情况下，再实例化数据
-    R data;
-    try {
-      data = decode(response.data['data']);
-    } catch (e) {
-      throw getBusinessErrorResult(HttpCode.PARSE_JSON_ERROR, "json parse error~$e", null);
+      handleFailed(response, data, decode);
+    } else {
+      //确保请求成功的情况下，再实例化数据
+      data = handleSuccess(data, decode, response);
     }
     return data;
   }
 
-  void printParams(Map<String, dynamic> params, url, headers) {
+  R handleSuccess<R>(data, decode(dynamic json), Response<dynamic> response) {
+    //确保请求成功的情况下，再实例化数据
+    try {
+      data = decode(response.data['data']);
+      return data as R;
+    } catch (e) {
+      throw getBusinessErrorResult(HttpCode.PARSE_JSON_ERROR, "json parse error 0 ~ $e", null);
+    }
+  }
+
+  handleFailed(Response<dynamic> response, data, decode(dynamic json)) {
+    if (response.data is Map && response.data["data"] != null) {
+      try {
+        data = decode(response.data['data']);
+      } catch (e) {
+        ///解析数据出错
+        throw getBusinessErrorResult(HttpCode.PARSE_JSON_ERROR, "json parse error 1 ~ $e", null);
+      }
+
+      ///抛出含有数据的error
+      throw getBusinessErrorResult(getCode(response), getMessage(response), data);
+    } else {
+      ///抛出没有数据的error
+      throw getBusinessErrorResult(getCode(response), getMessage(response), null);
+    }
+  }
+
+  void printParams(Map<String, dynamic> params, url, headers, response) {
     print("------ url:$url");
     print("------ headers:$headers");
+
     final pms = params.toString();
     final len = pms.length;
-    if (len > 100) {
-      int startIndex = 0;
-      int endIndex = 100;
-      while (true) {
-        print("---------- params: ${pms.substring(startIndex, endIndex)}");
-        if (endIndex == pms.length) {
-          break;
+    final res = response == null ? "" : response.data?.toString() ?? "";
+    try {
+      if (len > 100) {
+        int startIndex = 0;
+        int endIndex = 100;
+        while (true) {
+          print("---------- params: ${pms.substring(startIndex, endIndex)}");
+          if (endIndex == pms.length) {
+            break;
+          }
+          startIndex = endIndex;
+          endIndex += 100;
+          if (endIndex > pms.length) {
+            endIndex = pms.length;
+          }
         }
-        startIndex = endIndex;
-        endIndex += 100;
-        if (endIndex > pms.length) {
-          endIndex = pms.length;
-        }
+      } else {
+        print("---------- params: $pms");
       }
-    } else {
-      print("---------- params: $pms");
+    } catch (e) {
+      print("---------- printLog()打印参数异常----");
+    }
+    try {
+      int length = 1500;
+      final len = res.length;
+      if (len > length) {
+        int startIndex = 0;
+        int endIndex = length;
+        while (true) {
+          print("------------response: ${res.substring(startIndex, endIndex)}");
+          if (endIndex == res.length) {
+            break;
+          }
+          startIndex = endIndex;
+          endIndex += length;
+          if (endIndex > res.length) {
+            endIndex = res.length;
+          }
+        }
+      } else {
+        print("------------response: $res");
+      }
+    } catch (e) {
+      print("---------- printLog()打印response异常----");
     }
   }
 
   ///具体的解析逻辑上层实现
-  T decode<T>(dynamic response);
+  T? decode<T>(dynamic response);
 
   ///业务逻辑报错映射
   NetWorkException getBusinessErrorResult<T>(int code, String error, T data);

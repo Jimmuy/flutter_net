@@ -1,5 +1,10 @@
 class Token {
-  static String token;
+  static String? token;
+}
+
+class Authority {
+  static const int AUTHORITY_ERROR_CODE = 403;
+  static const String AUTHORITY_ERROR_HEADER_KEY = "X-Status-Code";
 }
 
 ///错误编码

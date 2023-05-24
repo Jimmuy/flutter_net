@@ -29,21 +29,21 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-  final String title;
+  MyHomePage({this.title}) : super();
+  final String? title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var _content = "";
+  String? _content = "";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(widget.title ?? ""),
       ),
       body: Center(
         child: Column(
@@ -102,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 alignment: Alignment.center,
                 margin: EdgeInsets.all(16),
                 child: Text(
-                  _content,
+                  _content ?? "",
                   style: Theme.of(context).textTheme.headline6,
                 ),
               ),
@@ -121,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
     requestPage<GetSampleBean>("/flutter_test/post", method: Method.POST)
         .then((value) => {
               setState(() {
-                _content = "分页请求解析字段average值为： ${value.rows[0].rating.average}";
+                _content = "分页请求解析字段average值为： ${value.rows[0].rating?.average}";
               })
             })
         .catchError((error) {
@@ -140,10 +140,10 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _content = "loading...";
     });
-    get<GetSampleBean>("/flutter_test/get")
+    get<String>("/flutter_test/get")
         .then((value) => {
               setState(() {
-                _content = "GET接口解析字段average值为： ${value.rating.average}";
+                _content = "GET接口解析字段average值为： $value";
               })
             })
         .catchError((error) {
@@ -184,7 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
 ///处理证书过期
 class MyHttpOverrides extends HttpOverrides {
   @override
-  HttpClient createHttpClient(SecurityContext context) {
+  HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
   }
 }

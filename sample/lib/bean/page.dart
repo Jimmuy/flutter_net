@@ -3,14 +3,14 @@ import 'package:net_sample/json/mapper.dart';
 
 ///分页逻辑的实体类，如分页方式与字段不同，最好使用PageObj作为类名，解析错误的话会有错误提示（非必须）
 class PageObj<T> {
-  int pageNo;
-  int pageSize;
-  int totalPage;
-  int total;
-  bool hasNextPage;
-  bool hasPreviousPage;
-  bool firstPage;
-  bool lastPage;
+  int pageNo = 0;
+  int pageSize = 20;
+  int? totalPage;
+  int? total;
+  bool? hasNextPage;
+  bool? hasPreviousPage;
+  bool? firstPage;
+  bool? lastPage;
   List<T> rows = [];
 
   PageObj();

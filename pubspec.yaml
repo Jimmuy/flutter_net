@@ -1,16 +1,15 @@
 name: flutter_net
 description: A Flutter package for network
-version: 0.0.1
-repository: "https://sys-gitlab.hikvision.com.cn/iBuilding/Cloud/87A0/APP/FlutterNet"
+version: 1.0.0
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0-0 <3.0.0"
 
 dependencies:
 
   flutter:
     sdk: flutter
   #网络请求库
-  dio: ^3.0.9
+  dio: ^4.0.4
 
 
 dev_dependencies:

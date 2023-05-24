@@ -5,7 +5,7 @@ import 'package:net_sample/json/mapper.dart';
 /// 简化网络请求而封装的顶层函数
 
 ///get 请求
-Future<T> get<T>(String url, {params, Options options, cancelToken}) async {
+Future<T> get<T>(String url, {params, Options? options, cancelToken}) async {
   return NetManager.getInstance().get<T>(url, params: params, options: options, token: cancelToken);
 }
 
@@ -64,21 +64,38 @@ Future<PageObj<T>> requestPage<T>(
 class NetManager extends DioManager {
   NetManager._();
 
-  static NetManager _instance;
+  static NetManager? _instance;
 
   static NetManager getInstance() {
     if (_instance == null) {
       _instance = NetManager._();
     }
-    return _instance;
+    return _instance!;
   }
 
   @override
-  T decode<T>(response) => createObjByType<T>(response, objectMapper);
+  T? decode<T>(response) => createObjByType<T>(response, objectMapper);
 
   @override
   String getBaseUrl() {
-    return "https://easy-mock.bookset.io/mock/5e8d32bc332b13380c27a529/example";
+    return "https://mock.mengxuegu.com/mock/6073b60856076a4a7648458e/example";
+  }
+
+  @override
+  bool isSuccess(Response response) {
+    return response.data['code'] == HttpCode.SUCCESS;
+  }
+
+  @override
+  NetWorkException getBusinessErrorResult<T>(int code, String error, T data) {
+    return super.getBusinessErrorResult(code, error, data);
+  }
+
+  @override
+  NetWorkException getHttpErrorResult(DioError e) {
+    NetWorkException httpErrorResult = super.getHttpErrorResult(e);
+    print("-----------------------HTTP ERROR ${httpErrorResult.data}");
+    return httpErrorResult;
   }
 
   @override

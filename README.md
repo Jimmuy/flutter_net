@@ -81,8 +81,8 @@ Future<List<T>> requestList <T>(String url , {Method method: Method. GET，  par
 ///当网络请求返回格式为分页形式的时候，使用requestList请求数据,，分页的数据结构为PageObj仅供参考
 
 Future<List<T>> requestPage <T>(String url , Method method:Method. GET , params , options , token})
-```
 
+```
 详情使用方式参见sample项目说明，请求库中默认提供了针对Json数据的的解析，sample中同样提供了推荐的json实例化方式，推荐使用
 
 [json对象生成工具](https://javiercbk.github.io/json_to_dart/)工具来进行数据对象Model的生成。

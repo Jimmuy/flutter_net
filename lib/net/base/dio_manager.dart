@@ -26,64 +26,65 @@ abstract class DioManager extends AbstractDioManager {
   /// HTTP层网络请求错误翻译
   @override
   NetWorkException getHttpErrorResult(DioError e) {
-    Response errorResponse;
+    String? statusMessage;
+    int? statusCode;
     if (e.response != null) {
-      errorResponse = e.response;
-    } else {
-      errorResponse = new Response(statusCode: HttpCode.UNKNOWN_NET_ERROR, statusMessage: "未知错误");
+      statusCode = e.response?.statusCode;
+      statusMessage = e.response?.statusMessage;
     }
-    if (e.type == DioErrorType.CONNECT_TIMEOUT) {
-      errorResponse.statusMessage = "连接超时";
-      errorResponse.statusCode = HttpCode.CONNECT_TIMEOUT;
-    } else if (e.type == DioErrorType.SEND_TIMEOUT) {
-      errorResponse.statusMessage = "请求超时";
-      errorResponse.statusCode = HttpCode.SEND_TIMEOUT;
-    } else if (e.type == DioErrorType.RECEIVE_TIMEOUT) {
-      errorResponse.statusMessage = "响应超时";
-      errorResponse.statusCode = HttpCode.RECEIVE_TIMEOUT;
-    } else if (e.type == DioErrorType.CANCEL) {
-      errorResponse.statusMessage = "请求取消";
-      errorResponse.statusCode = HttpCode.REQUEST_CANCEL;
-    } else if (e.type == DioErrorType.RESPONSE) {
+    if (e.type == DioErrorType.connectTimeout) {
+      statusMessage = "连接超时";
+      statusCode = HttpCode.CONNECT_TIMEOUT;
+    } else if (e.type == DioErrorType.sendTimeout) {
+      statusMessage = "请求超时";
+      statusCode = HttpCode.SEND_TIMEOUT;
+    } else if (e.type == DioErrorType.receiveTimeout) {
+      statusMessage = "响应超时";
+      statusCode = HttpCode.RECEIVE_TIMEOUT;
+    } else if (e.type == DioErrorType.cancel) {
+      statusMessage = "请求取消";
+      statusCode = HttpCode.REQUEST_CANCEL;
+    } else if (e.type == DioErrorType.response) {
+      check(e.response);
       switch (e.response?.statusCode) {
         case 400:
-          errorResponse.statusMessage = "请求语法错误";
+          statusMessage = "请求语法错误";
           break;
         case 401:
           //退出登录
           logout();
-          errorResponse.statusMessage = "鉴权失败";
+          statusMessage = "鉴权失败";
           break;
         case 403:
-          errorResponse.statusMessage = "服务器拒绝执行";
+          statusMessage = "服务器拒绝执行";
           break;
         case 404:
-          errorResponse.statusMessage = "无法连接服务器";
+          statusMessage = "无法连接服务器";
           break;
         case 405:
-          errorResponse.statusMessage = "请求方法被禁止";
+          statusMessage = "请求方法被禁止";
           break;
         case 500:
-          errorResponse.statusMessage = "服务器内部错误";
+          statusMessage = "服务器内部错误";
           break;
         case 502:
-          errorResponse.statusMessage = "无效的请求";
+          statusMessage = "无效的请求";
           break;
         case 503:
-          errorResponse.statusMessage = "服务器挂了";
+          statusMessage = "服务器挂了";
           break;
         case 505:
-          errorResponse.statusMessage = "不支持HTTP协议请求";
+          statusMessage = "不支持HTTP协议请求";
           break;
         default:
-          errorResponse.statusMessage = "未知错误";
+          statusMessage = "未知错误";
           break;
       }
     } else {
-      errorResponse.statusMessage = "未知错误";
-      errorResponse.statusCode = HttpCode.UNKNOWN_NET_ERROR;
+      statusMessage = "未知错误";
+      statusCode = HttpCode.UNKNOWN_NET_ERROR;
     }
-    return new NetWorkException(errorResponse.statusCode, errorResponse.statusMessage);
+    return new NetWorkException(statusCode, statusMessage, data: e);
   }
 
   ///判断网络请求是否成功
@@ -95,4 +96,27 @@ abstract class DioManager extends AbstractDioManager {
 
   ///token失效登出逻辑
   void logout();
+
+  bool needCheck403() => false;
+
+  ///  * 为了不影响以前业务以及别的业务线
+  ///  * 网关端在响应头里新增字段 X-Status-Code 来区分是真的401还是403，此时 response?.statusCode 返回的仍是401
+  ///  * 是403时 body会返回没有权限的 权限码和名字json(目前已跟产品确认不需要toast提示)
+  ///  * 包含此字段时才去判断 不包含则继续维持之前逻辑 ,如果是真的403  则将response?.statusCode赋值为403
+  ///
+  void check(Response? response) {
+    if (response != null) {
+      Headers headers = response.headers;
+      var code;
+      try {
+        code = headers.value(Authority.AUTHORITY_ERROR_HEADER_KEY);
+      } catch (e) {
+        code = null;
+      }
+      if (Authority.AUTHORITY_ERROR_CODE.toString() == code) {
+        ///如果响应头里 X-Status-Code有值且是403 说明是真的没有权限 此时把code赋值为403，
+        response.statusCode = Authority.AUTHORITY_ERROR_CODE;
+      }
+    }
+  }
 }
