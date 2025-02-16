@@ -5,7 +5,7 @@
 
   flutter_net:
      git:
-       url:https://github.com/Jimmuy/flutter_net.git
+       url: https://github.com/Jimmuy/flutter_net.git
 
 ```
 # 摘要：
